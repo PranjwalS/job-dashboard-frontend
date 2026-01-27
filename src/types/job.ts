@@ -4,6 +4,6 @@ export interface Job {
   company: string;
   location: string;
   score: number;
-  datePosted: string; 
+  scraped_at: string;
   applied: boolean;
 }
