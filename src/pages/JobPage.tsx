@@ -13,12 +13,13 @@ function TemplateJobPage() {
     const fetchJob = async () => {
       setLoading(true);
       setError(null);
-
+    
+      const jobId = Number(slug);
       try {
         const { data, error } = await supabase
         .from("jobs") 
         .select("*")
-        .eq("id", slug)
+        .eq("id", jobId)
         .single();
 
 

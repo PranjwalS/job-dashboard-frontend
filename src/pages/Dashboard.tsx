@@ -14,7 +14,7 @@ const Dashboard: React.FC = () => {
         .from("jobs")
         .select("id,title,company,location,score");
 
-    const sorted = (data as Job[]).sort((a, b) => Number(a.id) - Number(b.id));
+    const sorted = (data as Job[]).sort((a, b) => Number(b.score) - Number(a.score));
     setJobs(sorted);    
     };
     
@@ -22,11 +22,13 @@ const Dashboard: React.FC = () => {
   }, []);
 
 const columns: ColumnDef<Job>[] = [
-  { accessorKey: "id", header: "ID", id: "id" },
+    
+  { accessorKey: "score", header: "Score", id: "score" },
   { accessorKey: "title", header: "Title", id: "title" },
   { accessorKey: "company", header: "Company", id: "company" },
   { accessorKey: "location", header: "Location", id: "location" },
-  { accessorKey: "score", header: "Score", id: "score" },
+    { accessorKey: "id", header: "ID", id: "id" },
+
 ];
 
   const table = useReactTable({ data: jobs, columns, getCoreRowModel: getCoreRowModel() });
@@ -48,7 +50,9 @@ const columns: ColumnDef<Job>[] = [
         </thead>
         <tbody>
             {table.getRowModel().rows.map(row => (
-            <tr key={row.id} className="hover:bg-gray-100 cursor-pointer">
+            <tr key={row.id}
+                className="hover:bg-gray-100 cursor-pointer" 
+                onClick={() => navigate(`/jobs/${row.getValue("id")}`)}>
                 {table.getAllColumns().map(col => (
                 <td key={col.id} className="border px-2 py-1">
                     {row.getValue(col.id)}
