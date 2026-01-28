@@ -10,16 +10,14 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const fetchJobs = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("jobs")
         .select("id,title,company,location,score");
 
-      if (error) console.error(error);
-      else {
-        const sorted = (data as Job[]).sort((a, b) => Number(a.id) - Number(b.id));
-        setJobs(sorted);
-    }      
+    const sorted = (data as Job[]).sort((a, b) => Number(a.id) - Number(b.id));
+    setJobs(sorted);    
     };
+    
     fetchJobs();
   }, []);
 
