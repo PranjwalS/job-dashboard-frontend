@@ -14,4 +14,5 @@ export interface SupabaseJob {
   score: number | null;
   score_breakdown: Record<string, unknown> | null;
   scored_at: string | null;
+  application_status: string;
 }
