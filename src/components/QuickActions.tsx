@@ -3,32 +3,42 @@ interface QuickActionsProps {
   applyType: string;
   coverLetterText: string | null;
   processedCoverLetter: boolean;
+  title: string;
 }
 
 function QuickActions({ 
   jobUrl, 
   applyType, 
   coverLetterText, 
-  processedCoverLetter 
+  processedCoverLetter,
+  title
 }: QuickActionsProps) {
   
-  const handleCoverLetterGenerate = () => {
-    // TODO: Implement FastAPI call to generate cover letter
-    console.log("Generate cover letter requested");
-  };
+const handleCoverLetterDownload = async () => {
+  if (!coverLetterText) return;
 
-  const handleCoverLetterDownload = () => {
-    if (!coverLetterText) return;
-    
-    // Create downloadable text file
-    const blob = new Blob([coverLetterText], { type: 'text/plain' });
+  try {
+    const res = await fetch("http://localhost:8000/coverletter-text", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, content: coverLetterText }),
+    });
+
+    if (!res.ok) throw new Error("Failed to download PDF");
+
+    const blob = await res.blob(); // MUST be blob for PDF
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = 'cover-letter.txt';
+    a.download = `${title}.pdf`; // use actual title
+    document.body.appendChild(a);
     a.click();
+    a.remove();
     window.URL.revokeObjectURL(url);
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const handleCVDownload = () => {
     // TODO: Implement CV download functionality
@@ -69,49 +79,52 @@ function QuickActions({
       </div>
 
       {/* Cover Letter */}
-      <div className="border-t border-gray-800 pt-4">
-        {processedCoverLetter && coverLetterText ? (
-          <button
-            onClick={handleCoverLetterDownload}
-            className="flex items-center justify-center w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg transition-colors"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Download Cover Letter
-          </button>
-        ) : (
-          <button
-            onClick={handleCoverLetterGenerate}
-            className="flex items-center justify-center w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition-colors border border-gray-700 border-dashed"
-          >
-            <svg
-              className="w-5 h-5 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Generate Cover Letter
-          </button>
-        )}
-      </div>
+{/* Cover Letter */}
+<div className="border-t border-gray-800 pt-4">
+  {processedCoverLetter && coverLetterText ? (
+    <button
+      onClick={handleCoverLetterDownload}
+      className="flex items-center justify-center w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg transition-colors"
+    >
+      <svg
+        className="w-5 h-5 mr-2"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      Download Cover Letter
+    </button>
+  ) : (
+    <button
+      disabled
+      className="flex items-center justify-center w-full px-4 py-3 bg-gray-800 text-gray-400 rounded-lg transition-colors border border-gray-700 border-dashed cursor-not-allowed"
+    >
+      <svg
+        className="w-5 h-5 mr-2"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        />
+      </svg>
+      Cover Letter Not Ready
+    </button>
+  )}
+</div>
+
+
 
       {/* CV Download */}
       <button

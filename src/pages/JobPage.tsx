@@ -150,6 +150,7 @@ function JobPage() {
               applyType={job.apply_type}
               coverLetterText={job.coverletter_text}
               processedCoverLetter={job.processed_coverletter}
+              title={job.title}
             />
             
             <ApplicationStatus
