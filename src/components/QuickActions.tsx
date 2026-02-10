@@ -21,7 +21,7 @@ const handleCoverLetterDownload = async () => {
     const res = await fetch("http://localhost:8000/coverletter-text", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, content: coverLetterText }),
+      body: JSON.stringify({ content: coverLetterText }),
     });
 
     if (!res.ok) throw new Error("Failed to download PDF");
@@ -30,7 +30,7 @@ const handleCoverLetterDownload = async () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${title}.pdf`; // use actual title
+    a.download = `${title}.pdf`; 
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -41,8 +41,13 @@ const handleCoverLetterDownload = async () => {
 };
 
   const handleCVDownload = () => {
-    // TODO: Implement CV download functionality
-    console.log("CV download requested");
+    const url = "http://localhost:8000/download-cv";
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "CV_Pranjwal_Singh.pdf"; // filename for download
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
   };
 
   return (
