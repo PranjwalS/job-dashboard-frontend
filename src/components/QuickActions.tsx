@@ -2,7 +2,6 @@ interface QuickActionsProps {
   jobUrl: string;
   applyType: string;
   coverLetterText: string | null;
-  processedCoverLetter: boolean;
   title: string;
 }
 
@@ -10,7 +9,6 @@ function QuickActions({
   jobUrl, 
   applyType, 
   coverLetterText, 
-  processedCoverLetter,
   title
 }: QuickActionsProps) {
   
@@ -18,7 +16,7 @@ const handleCoverLetterDownload = async () => {
   if (!coverLetterText) return;
 
   try {
-    const res = await fetch("http://localhost:8000/coverletter-text", {
+    const res = await fetch("http://localhost:8001/coverletter-text", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ content: coverLetterText }),
@@ -41,7 +39,7 @@ const handleCoverLetterDownload = async () => {
 };
 
   const handleCVDownload = () => {
-    const url = "http://localhost:8000/download-cv";
+    const url = "http://localhost:8001/download-cv";
     const a = document.createElement("a");
     a.href = url;
     a.download = "CV_Pranjwal_Singh.pdf"; // filename for download
@@ -86,7 +84,7 @@ const handleCoverLetterDownload = async () => {
       {/* Cover Letter */}
 {/* Cover Letter */}
 <div className="border-t border-gray-800 pt-4">
-  {processedCoverLetter && coverLetterText ? (
+  {coverLetterText ? (
     <button
       onClick={handleCoverLetterDownload}
       className="flex items-center justify-center w-full px-4 py-3 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg transition-colors"

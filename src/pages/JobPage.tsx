@@ -17,37 +17,45 @@ function JobPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [applicationStatus, setApplicationStatus] = useState<string>("Not Applied");
-
+  const [coverLetterText, setCoverLetterText] = useState<string | null>(null);
+  
   useEffect(() => {
-    const fetchJob = async () => {
-      setLoading(true);
-      setError(null);
-      const jobId = Number(slug);
+      const fetchJob = async () => {
+        setLoading(true);
+        setError(null);
+        const jobId = Number(slug);
 
-      try {
-        const { data, error } = await supabase
-          .from("jobs")
-          .select("*")
-          .eq("id", jobId)
-          .single();
+        try {
+          const { data, error } = await supabase
+            .from("jobs")
+            .select("*")
+            .eq("id", jobId)
+            .single();
 
-        if (error) throw error;
-        setJob(data as SupabaseJob);
-        
-        // Set application status from DB
-        setApplicationStatus(data.application_status || "Not Applied");
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError(String(err));
+          if (error) throw error;
+          setJob(data as SupabaseJob);
+          setApplicationStatus(data.application_status || "Not Applied");
+
+          // Always generate cover letter on load
+          const clRes = await fetch("http://localhost:8001/generate-coverletter", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ job_id: jobId }),
+          });
+          const clData = await clRes.json();
+          if (clRes.ok && clData.coverletter_text) {
+            setCoverLetterText(clData.coverletter_text);
+          }
+
+        } catch (err: unknown) {
+          if (err instanceof Error) setError(err.message);
+          else setError(String(err));
+        } finally {
+          setLoading(false);
         }
-      } finally {
-        setLoading(false);
-      }
-    };
+      };
 
-    if (slug) fetchJob();
+      if (slug) fetchJob();
   }, [slug]);
 
   const handleApplicationToggle = async (newStatus: string) => {
@@ -144,15 +152,13 @@ function JobPage() {
             <JobScore
               score={job.score}
             />
-            
+
             <QuickActions
               jobUrl={job.url}
               applyType={job.apply_type}
-              coverLetterText={job.coverletter_text}
-              processedCoverLetter={job.processed_coverletter}
+              coverLetterText={coverLetterText}
               title={job.title}
             />
-            
             <ApplicationStatus
               status={applicationStatus}
               onStatusChange={handleApplicationToggle}
