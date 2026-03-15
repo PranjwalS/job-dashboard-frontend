@@ -19,45 +19,61 @@ function JobPage() {
   const [applicationStatus, setApplicationStatus] = useState<string>("Not Applied");
   const [coverLetterText, setCoverLetterText] = useState<string | null>(null);
   
-  useEffect(() => {
-      const fetchJob = async () => {
-        setLoading(true);
-        setError(null);
-        const jobId = Number(slug);
+useEffect(() => {
+    const fetchJob = async () => {
+      setLoading(true);
+      setError(null);
+      const jobId = Number(slug);
 
-        try {
-          const { data, error } = await supabase
-            .from("jobs")
-            .select("*")
-            .eq("id", jobId)
-            .single();
+      try {
+        const { data, error } = await supabase
+          .from("jobs")
+          .select("*")
+          .eq("id", jobId)
+          .single();
 
-          if (error) throw error;
-          setJob(data as SupabaseJob);
-          setApplicationStatus(data.application_status || "Not Applied");
+        if (error) throw error;
 
-          // Always generate cover letter on load
+        let finalJob = data as SupabaseJob;
+
+        // Only generate cover letter + score if either is missing
+        if (!finalJob.coverletter_text || !finalJob.score || finalJob.score === 0) {
           const clRes = await fetch("http://localhost:8001/generate-coverletter", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ job_id: jobId }),
           });
-          const clData = await clRes.json();
-          if (clRes.ok && clData.coverletter_text) {
-            setCoverLetterText(clData.coverletter_text);
+          if (clRes.ok) {
+            const clData = await clRes.json();
+            if (clData.coverletter_text) {
+              setCoverLetterText(clData.coverletter_text);
+            }
+            // Refetch from DB to get updated score + any other fields written by the endpoint
+            const { data: updatedData } = await supabase
+              .from("jobs")
+              .select("*")
+              .eq("id", jobId)
+              .single();
+            if (updatedData) finalJob = updatedData as SupabaseJob;
           }
-
-        } catch (err: unknown) {
-          if (err instanceof Error) setError(err.message);
-          else setError(String(err));
-        } finally {
-          setLoading(false);
+        } else {
+          setCoverLetterText(finalJob.coverletter_text);
         }
-      };
 
-      if (slug) fetchJob();
-  }, [slug]);
+        // Set everything at the end once all data is ready
+        setJob(finalJob);
+        setApplicationStatus(finalJob.application_status || "Not Applied");
 
+      } catch (err: unknown) {
+        if (err instanceof Error) setError(err.message);
+        else setError(String(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) fetchJob();
+}, [slug]);
   const handleApplicationToggle = async (newStatus: string) => {
     if (!job) return;
 
